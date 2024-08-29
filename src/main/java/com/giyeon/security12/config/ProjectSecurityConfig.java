@@ -4,6 +4,7 @@ import com.giyeon.security12.filter.CsrfCookieFilter;
 import com.giyeon.security12.filter.EmailValidationFilter;
 import com.giyeon.security12.filter.JwtTokenGeneratorFilter;
 
+import com.giyeon.security12.filter.JwtTokenValidatorFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +38,7 @@ public class ProjectSecurityConfig {
              .securityContext((context) -> context
                 .requireExplicitSave(false))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))//session을 컨텍스트에 자동으로 저장하고
-//                                                                                                            //요청때마다 세션을 생성
+                                                                                                            //요청때마다 세션을 생성
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {//cross origin문제 해결
 
                     @Override
@@ -55,12 +56,14 @@ public class ProjectSecurityConfig {
                 }))
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(requestHandler).ignoringRequestMatchers("/register")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))//JS에서 이거 읽을 수 있도록 함.
-                .addFilterAfter(new JwtTokenGeneratorFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new JwtTokenGeneratorFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtTokenValidatorFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new EmailValidationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) -> {
                     requests
                             .requestMatchers("/user/information").hasRole("USER")
+                            .requestMatchers("/").authenticated()
                             .requestMatchers("/welcome","/login", "/department", "/register", "/random").permitAll();
                 });
         http.formLogin(Customizer.withDefaults());//폼 로그인 활성화

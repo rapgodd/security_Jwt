@@ -26,7 +26,7 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_KEY.getBytes(StandardCharsets.UTF_8));
+            SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_DEFAULT_VALUE.getBytes(StandardCharsets.UTF_8));
             String jwt = Jwts.builder().setIssuer("GIYEON").setSubject("JWT Token")
                     .claim("username", authentication.getName())
                     .claim("authorities", populateAuthorities(authentication.getAuthorities()))
@@ -41,7 +41,7 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
-        return !path.equals("/login") && !path.equals("/user/information");
+        return !path.equals("/user/information") && !path.equals("/");
     }
 
     private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
